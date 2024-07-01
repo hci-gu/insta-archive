@@ -1,325 +1,126 @@
 // file:///Users/sebastianandreasson/Documents/Tester%20med%20min%20egen%20data/instagram-beata_j-2024-03-07-2Lvo0rP9/your_instagram_activity/content/posts_1.html
 
-import styled from '@emotion/styled'
 import React from 'react'
 import DarkModeToggle from './components/DarkModeToggle'
-import { AppShell, Flex, Space, Text, Title } from '@mantine/core'
-import UploadFile from './components/UploadFile'
-import { useAtomValue } from 'jotai'
-import { folderDataAtom, htmlDataAtom, htmlHistoryDataAtom } from './state'
+import { AppShell, Center, Container, Flex, Image, Text } from '@mantine/core'
+import { useInstagramArchive } from 'insta-archive-hook'
 
-import {
-  CartesianGrid,
-  Legend,
-  Line,
-  LineChart,
-  ReferenceLine,
-  XAxis,
-  YAxis,
-} from 'recharts'
 import { unwrap } from 'jotai/utils'
 import moment from 'moment'
 import { scaleBand, scaleLinear } from '@visx/scale'
 import { Group } from '@visx/group'
-import { Bar, LinePath } from '@visx/shape'
+import { Bar, LinePath, arc } from '@visx/shape'
 import { AxisBottom } from '@visx/axis'
+import UploadFile from './components/UploadFile'
+import { Player } from '@remotion/player'
+import { AbsoluteFill, useCurrentFrame } from 'remotion'
+import LineChart from './components/LineChart'
+import { useElementSize, useViewportSize } from '@mantine/hooks'
+import InstagramActivity from './components/InstagramActivity'
 
-const extractDates = (data) => {
-  const uniqueDates = [...new Set(data)]
-  return uniqueDates.sort()
-}
+const padLeft = (str, len = 2, char) =>
+  Array(len - String(str).length + 1).join('0') + str
 
-function extent(values, valueof) {
-  let min
-  let max
-  if (valueof === undefined) {
-    for (const value of values) {
-      if (value != null) {
-        if (min === undefined) {
-          if (value >= value) min = max = value
-        } else {
-          if (min > value) min = value
-          if (max < value) max = value
-        }
-      }
-    }
-  } else {
-    let index = -1
-    for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null) {
-        if (min === undefined) {
-          if (value >= value) min = max = value
-        } else {
-          if (min > value) min = value
-          if (max < value) max = value
-        }
-      }
-    }
+const logoForYear = (year) => {
+  if (year <= 2010) {
+    return '/icons/2010.png'
+  } else if (year <= 2011) {
+    return '/icons/2011.png'
+  } else if (year <= 2012) {
+  } else if (year <= 2016) {
+    return '/icons/2016.png'
+  } else if (year <= 2022) {
+    return '/icons/2022.png'
   }
-  return [min, max]
+  return '/icons/2022.png'
 }
 
-const postsToBuckets = (posts) => {
-  const buckets = posts.reduce((acc, curr) => {
-    const time = curr.timestamp
-    const key = moment(curr.timestamp).format('YYYY-MM-DD')
-    if (!acc[key]) {
-      acc[key] = {
-        value: 1,
-        date: time,
-      }
-    } else {
-      acc[key].value++
-    }
-    return acc
-  }, {})
+const DateDisplayer = ({ archive }) => {
+  const frame = useCurrentFrame()
+  const activity = archive.activities[frame]
+  if (!activity) return null
 
-  return Object.keys(buckets)
-    .map((time) => ({
-      time,
-      date: buckets[time].date,
-      value: buckets[time].value,
-    }))
-    .sort((a, b) => a.date - b.date)
-}
-
-const formatDate = (date) => moment(date).format('YYYY-MM-DD')
-
-const Interactions = () => {
-  const likes = useAtomValue(
-    unwrap(htmlDataAtom(['likes', 'liked_posts.html']))
-  )
-  const commentLikes = useAtomValue(
-    unwrap(htmlDataAtom(['likes', 'liked_comments.html']))
-  )
-
-  if (!likes || !commentLikes) {
-    return
-  }
-
-  const data = extractDates([
-    ...Object.keys(likes),
-    ...Object.keys(commentLikes),
-  ]).map((date) => ({
-    date,
-    likes: likes[date] || 0,
-    commentLikes: commentLikes[date] || 0,
-  }))
+  const year = moment(activity.timestamp).year()
+  const month = moment(activity.timestamp).month()
+  const day = padLeft(moment(activity.timestamp).date())
 
   return (
-    <div style={{ marginTop: 100 }}>
-      <Flex>
-        <Flex direction="column">
-          <Title>Interactions</Title>
-          <Space h={16} />
-          <LineChart width={1720 / 1.25} height={500} data={data}>
-            <XAxis
-              dataKey="date"
-              tickFormatter={formatDate}
-              tick={{ fontSize: 12 }}
-            />
-            <YAxis />
-            <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
-            <Line
-              type="monotone"
-              dataKey="commentLikes"
-              stroke="#05668D"
-              dot={false}
-            />
-            {/* <ReferenceLine x={'2017-02-22'} stroke="red" label="Max PV PAGE" /> */}
-            <Line
-              type="monotone"
-              dataKey="likes"
-              stroke="#EF5B5B"
-              dot={false}
-            />
-            <Legend />
-          </LineChart>
-        </Flex>
-      </Flex>
-    </div>
+    <Flex mt={24} ml={24} w={225}>
+      <Image src={logoForYear(parseInt(year))} w={64} h={64} />
+      <Container flex="column">
+        <Text fz={72} fw={900} lh={0.6}>
+          {year}
+        </Text>
+        <Text fz={48} fw={200}>
+          {day}/{month}
+        </Text>
+      </Container>
+    </Flex>
   )
 }
 
-const FolderData = () => {
-  const posts = useAtomValue(unwrap(folderDataAtom(['media', 'posts'])))
-  const reels = useAtomValue(unwrap(folderDataAtom(['media', 'reels'])))
-  const stories = useAtomValue(unwrap(folderDataAtom(['media', 'stories'])))
-  const likes = useAtomValue(
-    unwrap(htmlDataAtom(['likes', 'liked_posts.html']))
-  )
-  const commentLikes = useAtomValue(
-    unwrap(htmlDataAtom(['likes', 'liked_comments.html']))
-  )
-
-  if (!posts || !reels || !stories || !likes || !commentLikes) {
-    return
-  }
-
-  const data = extractDates([
-    ...Object.keys(posts),
-    ...Object.keys(reels),
-    ...Object.keys(stories),
-    ...Object.keys(likes),
-    ...Object.keys(commentLikes),
-  ]).map((date) => ({
-    date,
-    posts: posts[date] || 0,
-    reels: reels[date] || 0,
-    likes: likes[date] || 0,
-    commentLikes: commentLikes[date] || 0,
-    stories: stories[date] || 0,
-  }))
-
+const VideoComponent = ({ archive, size }) => {
   return (
-    <div style={{ marginTop: 100 }}>
-      <Flex>
-        <Flex direction="column">
-          <Title>Posts & Stories</Title>
-          <Space h={16} />
-          <LineChart width={1720 / 1.25} height={500} data={data}>
-            <XAxis
-              dataKey="date"
-              tickFormatter={formatDate}
-              tick={{ fontSize: 12 }}
-            />
-            <YAxis />
-            <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
-            <Line
-              type="monotone"
-              dataKey="posts"
-              stroke="#05668D"
-              dot={false}
-            />
-            <ReferenceLine x={'2017-02-22'} stroke="red" label="Max PV PAGE" />
-            <Line
-              type="monotone"
-              dataKey="stories"
-              stroke="#EF5B5B"
-              dot={false}
-            />
-            {/* <Line
-              type="monotone"
-              dataKey="likes"
-              stroke="#EF5B5B"
-              dot={false}
-            /> */}
-            {/* <Line
-              type="monotone"
-              dataKey="reels"
-              stroke="#232E21"
-              dot={false}
-            /> */}
-            {/* <Line
-              type="monotone"
-              dataKey="commentLikes"
-              stroke="#232E21"
-              dot={false}
-            /> */}
-            <Legend />
-          </LineChart>
-        </Flex>
-        {/* <Flex direction="column">
-          <Title>Likes</Title>
-          <Space h={16} />
-          <LineChart width={1720 / 2} height={500} data={data}>
-            <XAxis
-              dataKey="date"
-              tickFormatter={formatDate}
-              tick={{ fontSize: 12 }}
-            />
-            <YAxis />
-            <CartesianGrid stroke="#eee" strokeDasharray="5 5" />
-            <Line
-              type="monotone"
-              dataKey="likes"
-              stroke="#EF5B5B"
-              dot={false}
-            />
-            <Legend />
-          </LineChart>
-        </Flex> */}
-      </Flex>
-    </div>
-  )
-}
-
-const PostsData = () => {
-  const posts = useAtomValue(
-    unwrap(
-      htmlHistoryDataAtom([
-        'your_instagram_activity',
-        'content',
-        'posts_1.html',
-      ])
-    )
-  )
-
-  if (!posts || !posts.length) return null
-
-  const width = 800
-  const height = 400
-  const padding = 16
-
-  const buckets = postsToBuckets(posts)
-
-  const xScale = scaleLinear({
-    range: [padding, width - padding * 2],
-    domain: extent(buckets, (d) => d.date.valueOf()),
-  })
-
-  const yScale = scaleLinear({
-    range: [height - padding * 2, padding],
-    domain: extent(buckets, (d) => d.value),
-  })
-
-  const compose = (scale, accessor) => (data) => scale(accessor(data))
-  // const xPoint = compose(xScale, x)
-  // const yPoint = compose(yScale, y)
-  //
-
-  console.log(buckets)
-
-  return (
-    <svg width={width} height={height} style={{ border: '1px dotted black' }}>
-      <LinePath
-        stroke="#A71D31"
-        strokeWidth={0.5}
-        data={buckets}
-        x={(d) => xScale(d.date.valueOf())}
-        y={(d) => yScale(d.value)}
-        // curve={curveBasis}
+    <AbsoluteFill>
+      <DateDisplayer archive={archive} />
+      <Center h={'60%'}>
+        <InstagramActivity archive={archive} />
+      </Center>
+      <LineChart
+        archive={archive}
+        size={{
+          width: size.width,
+          height: size.height / 3,
+        }}
       />
-      <AxisBottom
-        scale={xScale}
-        top={height - padding * 2}
-        numTicks={10}
-        stroke="red"
-        strokeWidth={1}
-        tickFormat={(d) => moment(d).format('YYYY')}
-        // hideTicks
-        tickLabelProps={() => ({
-          fill: '#0f0f0f',
-          fontSize: 11,
-        })}
-      />
-    </svg>
+    </AbsoluteFill>
+  )
+}
+
+const PlayerWrapper = ({ archive, size }) => {
+  if (size.width === 0 || size.height === 0) {
+    return <Text>Waiting for size</Text>
+  }
+
+  return (
+    <Player
+      fps={24}
+      durationInFrames={archive.activities.length}
+      component={() => <VideoComponent archive={archive} size={size} />}
+      compositionWidth={size.width}
+      compositionHeight={size.height}
+      controls
+      // alwaysShowControls
+    />
+  )
+}
+
+const FullSizeContainer = ({ archive }) => {
+  const { ref, width, height } = useElementSize()
+
+  return (
+    <div
+      style={{
+        height: '100vh',
+      }}
+      ref={ref}
+    >
+      <PlayerWrapper archive={archive} size={{ width, height }} />
+    </div>
   )
 }
 
 const App = () => {
+  const [archive, setFile] = useInstagramArchive()
+  if (archive) {
+    archive.activities.sort((a, b) => a.timestamp - b.timestamp)
+  }
+
   return (
     <AppShell>
-      <AppShell.Header h={64} p={16}>
-        <Flex align="center" justify="end">
-          <DarkModeToggle />
-        </Flex>
-      </AppShell.Header>
-      <AppShell.Main p="xl" pt={64}>
-        <UploadFile />
-        <FolderData />
-        <Interactions />
-        {/* <PostsData /> */}
+      <AppShell.Main>
+        {!archive && <UploadFile setFile={setFile} />}
+        {archive && <FullSizeContainer archive={archive} />}
       </AppShell.Main>
     </AppShell>
   )

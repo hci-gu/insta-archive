@@ -1,21 +1,17 @@
 import styled from '@emotion/styled'
 import React from 'react'
 import { Group, Text, rem } from '@mantine/core'
-import { IconUpload, IconPhoto, IconArchive, IconX } from '@tabler/icons-react'
+import { IconUpload, IconArchive, IconX } from '@tabler/icons-react'
 import { Dropzone } from '@mantine/dropzone'
-import { useSetAtom } from 'jotai'
-import { fileAtom } from '../state'
 
 const Container = styled.div`
   margin: 0 auto;
-  margin-top: 64px;
+  margin-top: 128px;
   width: 600px;
   height: 200px;
 `
 
-const UploadFile = () => {
-  const setFile = useSetAtom(fileAtom)
-
+const UploadFile = ({ setFile }) => {
   return (
     <Container>
       <Dropzone

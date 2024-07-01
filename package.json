@@ -10,16 +10,34 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.2.1",
-    "vite": "^5.1.3"
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.3.1"
   },
   "dependencies": {
-    "@emotion/react": "^11.11.3",
-    "@emotion/styled": "^11.11.0",
-    "@mantine/core": "^7.5.3",
-    "@mantine/hooks": "^7.5.3",
-    "@tabler/icons-react": "^2.47.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "@mantine/core": "^7.10.2",
+    "@mantine/dropzone": "^7.10.2",
+    "@mantine/hooks": "^7.10.2",
+    "@remotion/player": "^4.0.177",
+    "@tabler/icons-react": "^3.6.0",
+    "@visx/axis": "^3.10.1",
+    "@visx/curve": "^3.3.0",
+    "@visx/group": "^3.3.0",
+    "@visx/scale": "^3.5.0",
+    "@visx/shape": "^3.5.0",
+    "@zip.js/zip.js": "^2.7.45",
+    "cheerio": "1.0.0-rc.12",
+    "d3-shape": "^3.2.0",
+    "exif-js": "^2.3.0",
+    "fast-deep-equal": "^3.1.3",
+    "framer-motion": "^11.2.12",
+    "insta-archive-hook": "github:hci-gu/insta-archive-hook",
+    "jotai": "^2.8.3",
+    "moment": "^2.30.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "recharts": "^2.12.7",
+    "remotion": "^4.0.177"
   }
 }
