@@ -1,22 +1,21 @@
-// file:///Users/sebastianandreasson/Documents/Tester%20med%20min%20egen%20data/instagram-beata_j-2024-03-07-2Lvo0rP9/your_instagram_activity/content/posts_1.html
+import React, { useRef } from 'react'
 
-import React from 'react'
-import DarkModeToggle from './components/DarkModeToggle'
 import { AppShell, Center, Container, Flex, Image, Text } from '@mantine/core'
 import { useInstagramArchive } from 'insta-archive-hook'
 
-import { unwrap } from 'jotai/utils'
 import moment from 'moment'
-import { scaleBand, scaleLinear } from '@visx/scale'
-import { Group } from '@visx/group'
-import { Bar, LinePath, arc } from '@visx/shape'
-import { AxisBottom } from '@visx/axis'
 import UploadFile from './components/UploadFile'
 import { Player } from '@remotion/player'
-import { AbsoluteFill, useCurrentFrame } from 'remotion'
-import LineChart from './components/LineChart'
-import { useElementSize, useViewportSize } from '@mantine/hooks'
+import { useCurrentFrame } from 'remotion'
+import { useElementSize } from '@mantine/hooks'
 import InstagramActivity from './components/InstagramActivity'
+import styled from '@emotion/styled'
+import Introduction from './pages/Introduction'
+import FirstPost from './pages/FirstPost'
+import ActivityTimeline from './pages/ActivityTimeline'
+import Likes from './pages/Likes'
+import LikesTimeline from './components/LikesTimeline'
+import InteractionsTimeline from './pages/LikesTimeline'
 
 const padLeft = (str, len = 2, char) =>
   Array(len - String(str).length + 1).join('0') + str
@@ -38,20 +37,20 @@ const logoForYear = (year) => {
 const DateDisplayer = ({ archive }) => {
   const frame = useCurrentFrame()
   const activity = archive.activities[frame]
-  if (!activity) return null
+  if (!activity || frame == 0) return null
 
   const year = moment(activity.timestamp).year()
   const month = moment(activity.timestamp).month()
   const day = padLeft(moment(activity.timestamp).date())
 
   return (
-    <Flex mt={24} ml={24} w={225}>
-      <Image src={logoForYear(parseInt(year))} w={64} h={64} />
-      <Container flex="column">
-        <Text fz={72} fw={900} lh={0.6}>
+    <Flex mt={18} ml={24} w={225} style={{ position: 'fixed' }}>
+      <Image src={logoForYear(parseInt(year))} w={50} h={50} />
+      <Container flex="column" mt={8}>
+        <Text fz={64} fw={900} lh={0.6}>
           {year}
         </Text>
-        <Text fz={48} fw={200}>
+        <Text fz={32} fw={200}>
           {day}/{month}
         </Text>
       </Container>
@@ -59,37 +58,104 @@ const DateDisplayer = ({ archive }) => {
   )
 }
 
-const VideoComponent = ({ archive, size }) => {
+const NUM_PAGES = 6
+
+const Pages = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: ${NUM_PAGES * 100}vh;
+
+  /* > div {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: '100%';
+    height: '100vh';
+    border: '1px solid black';
+  } */
+`
+
+const VideoComponent = ({ playerRef, archive, size }) => {
+  const scrollRef = useRef()
+
   return (
-    <AbsoluteFill>
+    <div style={{ width: '100%', overflowY: 'scroll' }} ref={scrollRef}>
       <DateDisplayer archive={archive} />
-      <Center h={'60%'}>
-        <InstagramActivity archive={archive} />
-      </Center>
-      <LineChart
-        archive={archive}
-        size={{
-          width: size.width,
-          height: size.height / 3,
-        }}
-      />
-    </AbsoluteFill>
+      {size.width > 0 && (
+        <>
+          <InstagramActivity
+            archive={archive}
+            scrollRef={scrollRef}
+            size={size}
+          />
+          {/* <Scrubber
+            archive={archive}
+            scrollRef={scrollRef}
+            playerRef={playerRef}
+            size={size}
+          /> */}
+        </>
+      )}
+
+      <Pages>
+        <div>
+          <Introduction archive={archive} />
+        </div>
+        <div>
+          <FirstPost playerRef={playerRef} />
+        </div>
+        <div>
+          <ActivityTimeline
+            title={'Dina inlägg/Stories över tid'}
+            archive={archive}
+            size={size}
+            playerRef={playerRef}
+          />
+        </div>
+        <div>
+          <InteractionsTimeline
+            title={'Dina interaktioner över tid'}
+            archive={archive}
+            size={size}
+            playerRef={playerRef}
+          />
+        </div>
+        {/* <div>
+          <ActivityTimeline
+            title={'Dina stories över tid'}
+            archive={archive}
+            data={archive.activities.filter((o) => o.type == 'Story')}
+            size={size}
+            playerRef={playerRef}
+          />
+        </div> */}
+        <div>
+          <Likes title="Konton du interagerar mest med" archive={archive} />
+        </div>
+      </Pages>
+    </div>
   )
 }
 
 const PlayerWrapper = ({ archive, size }) => {
+  const playerRef = useRef()
   if (size.width === 0 || size.height === 0) {
     return <Text>Waiting for size</Text>
   }
 
   return (
     <Player
+      ref={playerRef}
       fps={24}
       durationInFrames={archive.activities.length}
-      component={() => <VideoComponent archive={archive} size={size} />}
+      component={() => (
+        <VideoComponent archive={archive} size={size} playerRef={playerRef} />
+      )}
       compositionWidth={size.width}
       compositionHeight={size.height}
-      controls
+      style={{ width: '100%', height: '100%' }}
+      // controls
       // alwaysShowControls
     />
   )

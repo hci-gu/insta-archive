@@ -4,10 +4,16 @@ import { MantineProvider } from '@mantine/core'
 import App from './App'
 import '@mantine/core/styles.css'
 import '@mantine/dropzone/styles.css'
+import './index.css'
 
 const Root = () => {
   return (
-    <MantineProvider>
+    <MantineProvider
+      theme={{
+        // fontFamily: 'Public Sans, sans-serif',
+        fontFamily: '"Noto Sans", sans-serif',
+      }}
+    >
       <App />
     </MantineProvider>
   )

@@ -15,8 +15,12 @@ const UploadFile = ({ setFile }) => {
   return (
     <Container>
       <Dropzone
+        bg="transparent"
         onDrop={(files) => setFile(files[0])}
         maxSize={500 * 1024 * 1024 ** 2}
+        style={{
+          border: '3px dashed black',
+        }}
       >
         <Group
           justify="center"
@@ -29,7 +33,7 @@ const UploadFile = ({ setFile }) => {
               style={{
                 width: rem(52),
                 height: rem(52),
-                color: 'var(--mantine-color-blue-6)',
+                color: 'black',
               }}
               stroke={1.5}
             />
@@ -49,7 +53,7 @@ const UploadFile = ({ setFile }) => {
               style={{
                 width: rem(52),
                 height: rem(52),
-                color: 'var(--mantine-color-dimmed)',
+                color: 'black',
               }}
               stroke={1.5}
             />
