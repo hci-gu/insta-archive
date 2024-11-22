@@ -4,7 +4,9 @@
   "description": "My current go-to templates for websites, different branches for different stacks maybe",
   "main": "index.js",
   "scripts": {
-    "dev": "vite"
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
   },
   "keywords": [],
   "author": "",
@@ -25,6 +27,7 @@
     "@visx/curve": "^3.3.0",
     "@visx/event": "^3.3.0",
     "@visx/group": "^3.3.0",
+    "@visx/legend": "^3.10.3",
     "@visx/scale": "^3.5.0",
     "@visx/shape": "^3.5.0",
     "@visx/text": "^3.3.0",
@@ -45,6 +48,7 @@
     "react-animated-numbers": "^0.18.0",
     "react-dom": "^18.3.1",
     "recharts": "^2.12.7",
-    "remotion": "^4.0.177"
+    "remotion": "^4.0.177",
+    "twemoji": "^14.0.2"
   }
 }

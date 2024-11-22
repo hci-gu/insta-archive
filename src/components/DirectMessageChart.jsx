@@ -7,11 +7,11 @@ import { useCurrentFrame } from 'remotion'
 import { useTooltip } from '@visx/tooltip'
 import { localPoint } from '@visx/event'
 import { bisector, extent } from '@visx/vendor/d3-array'
-import React, { useMemo } from 'react'
+import React, { act, useMemo } from 'react'
 import styled from '@emotion/styled'
 
-const STORIES_COLOR = '#C03221'
-const POSTS_COLOR = '#545E75'
+const SENT_COLOR = '#C03221'
+const RECEIVED_COLOR = '#545E75'
 
 const dataToBuckets = (data, type) => {
   const buckets = data.reduce((acc, curr) => {
@@ -68,10 +68,10 @@ const Legend = () => {
   return (
     <LegendWrapper>
       <span>
-        <div style={{ background: POSTS_COLOR }}></div> Inlägg
+        <div style={{ background: SENT_COLOR }}></div> Skickade
       </span>
       <span>
-        <div style={{ background: STORIES_COLOR }}></div> Stories
+        <div style={{ background: RECEIVED_COLOR }}></div> Mottagna
       </span>
     </LegendWrapper>
   )
@@ -83,25 +83,14 @@ const LineChart = ({
   padding = 48,
   playerRef,
 }) => {
-  const {
-    tooltipData,
-    tooltipLeft,
-    tooltipTop,
-    tooltipOpen,
-    showTooltip,
-    hideTooltip,
-  } = useTooltip()
-
-  const frame = useCurrentFrame()
-  const activePost =
-    showTooltip && tooltipLeft > 0 ? archive.activities[frame] : null
-  const postsBuckets = dataToBuckets(archive.activities, 'Post')
-  const storiesBuckets = dataToBuckets(archive.activities, 'Story')
   const username = archive.profile.name
-  const myDms = archive.directMessages.filter((o) => o.sender === username)
-  // const directMessages = dataToBuckets(myDms)
-  const buckets = dataToBuckets(archive.activities)
-  const bisectDate = bisector((d) => new Date(d.timestamp)).left
+  const sentDms = archive.directMessages.filter((o) => o.sender === username)
+  const receivedDms = archive.directMessages.filter(
+    (o) => o.sender !== username
+  )
+  const sentDMBuckets = dataToBuckets(sentDms)
+  const receivedDMBuckets = dataToBuckets(receivedDms)
+  const buckets = dataToBuckets([...sentDms, ...receivedDms])
 
   const { width, height } = size
 
@@ -109,7 +98,7 @@ const LineChart = ({
     () =>
       scaleTime({
         range: [padding, width - padding],
-        domain: extent(archive.activities, (d) => d.timestamp),
+        domain: extent(buckets, (d) => d.time),
       }),
     [width, padding]
   )
@@ -122,74 +111,25 @@ const LineChart = ({
     [height, buckets]
   )
 
-  const handleMouseOver = (event, datum) => {
-    const { x } = localPoint(event.target.ownerSVGElement, event) || { x: 0 }
-    const x0 = dateScale.invert(x)
-    const index = bisectDate(archive.activities, x0, 1)
-
-    if (playerRef.current) {
-      playerRef.current.seekTo(index)
-    }
-    showTooltip({
-      tooltipLeft: x,
-      tooltipData: datum,
-    })
-  }
-
-  let storyOpacity =
-    activePost && activePost.type == 'Story' ? 1 : activePost ? 0.3 : 1
-  let postOpacity =
-    activePost && activePost.type == 'Post' ? 1 : activePost ? 0.3 : 1
-
   return (
     <div style={{ position: 'relative' }}>
       <Legend />
       <svg width={width} height={height}>
-        {showTooltip && tooltipLeft > 0 && (
-          <Line
-            from={{ x: tooltipLeft, y: padding }}
-            to={{ x: tooltipLeft, y: height - padding }}
-            stroke="rgba(0, 0, 0, 0.25)"
-            strokeWidth={2}
-            strokeDasharray="5,2"
-          />
-        )}
         <LinePath
-          stroke="#C03221"
+          stroke={SENT_COLOR}
           strokeWidth={2}
-          data={storiesBuckets}
-          opacity={storyOpacity}
+          data={sentDMBuckets}
           x={(d) => dateScale(d.date)}
           y={(d) => yScale(d.value)}
           curve={curveBasis}
         />
-        {/* <LinePath
-          stroke="#E45E75"
-          strokeWidth={2}
-          data={directMessages}
-          opacity={storyOpacity}
-          x={(d) => dateScale(d.date)}
-          y={(d) => yScale(d.value)}
-          curve={curveBasis}
-        /> */}
         <LinePath
-          stroke="#545E75"
+          stroke={RECEIVED_COLOR}
           strokeWidth={2}
-          opacity={postOpacity}
-          data={postsBuckets}
+          data={receivedDMBuckets}
           x={(d) => dateScale(d.date)}
           y={(d) => yScale(d.value)}
           curve={curveBasis}
-        />
-        <Bar
-          x={padding}
-          y={0}
-          width={width - padding * 2}
-          height={height}
-          fill="transparent"
-          rx={14}
-          onMouseMove={handleMouseOver}
-          onMouseLeave={() => hideTooltip()}
         />
         <AxisBottom
           scale={dateScale}

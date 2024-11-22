@@ -239,7 +239,8 @@ const InstagramActivityWrapper = ({ archive, size, scrollRef }) => {
   }, [])
 
   const padding = 16
-  const outSideRight = -ELEMENT_WIDTH
+  const outsideRight = -ELEMENT_WIDTH
+  const outsideLeft = size.width + ELEMENT_WIDTH
   const left = size.width - ELEMENT_WIDTH - padding
   const middle = size.width / 2 - ELEMENT_WIDTH / 2
   const right = padding
@@ -253,10 +254,10 @@ const InstagramActivityWrapper = ({ archive, size, scrollRef }) => {
       size.height * 1.8,
       size.height * 2,
       size.height * 2.25,
+      size.height * 3.5,
       size.height * 4,
-      size.height * 5,
     ],
-    [outSideRight, outSideRight, middle, middle, left, left, left, right],
+    [outsideRight, outsideRight, middle, middle, left, left, left, outsideLeft],
     {
       easing: Easing.elastic(0.5),
       extrapolateLeft: 'clamp',

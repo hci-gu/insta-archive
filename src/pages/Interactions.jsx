@@ -1,6 +1,7 @@
 import styled from '@emotion/styled'
 import { Text } from '@mantine/core'
-import LikesTimeline from '../components/LikesTimeline'
+import InteractionsTimeline from '../components/InteractionsTimeline'
+import React from 'react'
 
 const Root = styled.div`
   width: 100%;
@@ -16,14 +17,21 @@ const Root = styled.div`
   }
 `
 
-const InteractionsTimeline = ({ archive, title, size, playerRef }) => {
+const MemoizedInteractionsTimeline = React.memo(
+  InteractionsTimeline,
+  (prev, next) => {
+    return prev.archive.interactions.length === next.archive.interactions.length
+  }
+)
+
+const Interactions = ({ archive, title, size, playerRef }) => {
   return (
     <Root>
       <div style={{ marginLeft: 275, marginTop: 128 }}>
         <Text fz={48} fw={800}>
           {title}
         </Text>
-        <LikesTimeline
+        <MemoizedInteractionsTimeline
           playerRef={playerRef}
           archive={archive}
           size={{
@@ -36,4 +44,4 @@ const InteractionsTimeline = ({ archive, title, size, playerRef }) => {
   )
 }
 
-export default InteractionsTimeline
+export default Interactions

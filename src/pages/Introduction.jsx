@@ -2,6 +2,7 @@ import styled from '@emotion/styled'
 import { Card, Center, SimpleGrid, Text } from '@mantine/core'
 import AnimatedNumbers from 'react-animated-numbers'
 import moment from 'moment'
+import twemoji from 'twemoji'
 
 const Root = styled.div`
   width: 100%;
@@ -23,6 +24,7 @@ const StatCard = styled(Card)`
 
   > strong {
     font-size: 56px;
+    font-weight: 800;
     line-height: 1;
   }
   > span {
@@ -33,7 +35,7 @@ const StatCard = styled(Card)`
 
 const Stat = ({ value, text }) => {
   return (
-    <StatCard shadow="sm" withBorder>
+    <StatCard shadow="md">
       <strong>
         <AnimatedNumbers
           // locale="sv-SE"
@@ -50,6 +52,29 @@ const Stat = ({ value, text }) => {
   )
 }
 
+const mostCommonEmoji = (text) => {
+  const emojiMap = text.split(' ').reduce((acc, curr) => {
+    if (curr in acc) {
+      acc[curr] += 1
+    } else {
+      acc[curr] = 1
+    }
+    return acc
+  }, {})
+  return Object.keys(emojiMap).reduce((a, b) =>
+    emojiMap[a] > emojiMap[b] ? a : b
+  )
+}
+
+function extractEmojis(text) {
+  const emojiRegex = /[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu
+  // Match the emojis and return them
+  // if (text.match(emojiRegex)) {
+  //   console.log(text.match(emojiRegex), text)
+  // }
+  return text.replace(/\uFE0F/g, '').match(emojiRegex) || []
+}
+
 const Introduction = ({ archive }) => {
   const postCount = archive.activities.filter((o) => o.type == 'Post').length
   const storiesCount = archive.activities.filter(
@@ -64,26 +89,44 @@ const Introduction = ({ archive }) => {
   const comments = archive.interactions.filter(
     (o) => o.type == 'Comment'
   ).length
+  const username = archive.profile.name
+  const dms = archive.directMessages.filter((o) => o.sender == username).length
+
+  const commentTexts = archive.interactions
+    .filter((o) => o.type === 'Comment')
+    .map((o) => o.content)
+    .flatMap(extractEmojis)
+    .join(' ')
+  const captions = archive.activities
+    .map((o) => o.caption)
+    .flatMap(extractEmojis)
+    .join(' ')
+
+  const emoji = mostCommonEmoji(commentTexts + ' ' + captions)
 
   return (
     <Root>
-      <Text fz={32} fw={300}>
+      <Text fz={32} fw={200}>
         Du skapade ditt konto{' '}
-        <strong>{moment(archive.startDate).format('YYYY-MM-DD')}</strong>.
+        <strong style={{ fontWeight: 800 }}>
+          {moment(archive.startDate).format('YYYY-MM-DD')}
+        </strong>
+        .
       </Text>
       <SimpleGrid cols={3} w={'50%'} m={'32px auto'} spacing="md">
         <Stat value={postCount} text="Inlägg" />
         <Stat value={storiesCount} text="Stories" />
-        <Stat value={likesCount} text="Gillade inlägg" />
-        <Stat value={commentLikeCount} text="Gillade kommentarer" />
-        <Stat value={comments} text="Kommentarer" />
+        <Stat value={likesCount} text="Inlägg du gillat" />
+        <Stat value={commentLikeCount} text="Kommentarer du gillat" />
+        <Stat value={comments} text="Kommentarer du skrivit" />
+        <Stat value={dms} text="Skickade DMs" />
 
-        {Array.from({ length: 1 }).map((_, i) => (
+        {/* {Array.from({ length: 1 }).map((_, i) => (
           <StatCard shadow="sm" withBorder key={`Griditem_${i}`}>
-            <strong>X</strong>
-            <span>Något</span>
+            <strong>{emoji}</strong>
+            <span>Mest använda emoji</span>
           </StatCard>
-        ))}
+        ))} */}
       </SimpleGrid>
     </Root>
   )

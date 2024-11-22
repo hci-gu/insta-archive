@@ -14,8 +14,13 @@ import Introduction from './pages/Introduction'
 import FirstPost from './pages/FirstPost'
 import ActivityTimeline from './pages/ActivityTimeline'
 import Likes from './pages/Likes'
-import LikesTimeline from './components/LikesTimeline'
-import InteractionsTimeline from './pages/LikesTimeline'
+import Interactions from './pages/Interactions'
+import Emojis from './pages/Emojis'
+import Weekdays from './pages/Weekdays'
+import TimeOfDay from './pages/TimeOfDay'
+import PublicVsPrivate from './pages/PublicVsPrivate'
+import DirectMessages from './pages/DirectMessages'
+import ShareData from './pages/ShareData'
 
 const padLeft = (str, len = 2, char) =>
   Array(len - String(str).length + 1).join('0') + str
@@ -107,31 +112,58 @@ const VideoComponent = ({ playerRef, archive, size }) => {
         </div>
         <div>
           <ActivityTimeline
-            title={'Dina inlägg/Stories över tid'}
+            title={'Dina inlägg och stories över tid'}
             archive={archive}
             size={size}
             playerRef={playerRef}
           />
         </div>
         <div>
-          <InteractionsTimeline
+          <Interactions
             title={'Dina interaktioner över tid'}
             archive={archive}
             size={size}
             playerRef={playerRef}
           />
         </div>
-        {/* <div>
-          <ActivityTimeline
-            title={'Dina stories över tid'}
+        <div>
+          <PublicVsPrivate
+            title={'Antal inlägg och stories jämfört med DMs'}
             archive={archive}
-            data={archive.activities.filter((o) => o.type == 'Story')}
             size={size}
             playerRef={playerRef}
           />
+        </div>
+        <div>
+          <DirectMessages
+            title={'Antal skickade och mottagna DMs över tid'}
+            archive={archive}
+            size={size}
+            playerRef={playerRef}
+          />
+        </div>
+        {/* <div>
+          <Likes title="Konton du interagerar mest med" archive={archive} />
         </div> */}
         <div>
-          <Likes title="Konton du interagerar mest med" archive={archive} />
+          <Weekdays
+            title="Dina mest aktiva dagar"
+            archive={archive}
+            size={size}
+          />
+        </div>
+        <div>
+          <TimeOfDay
+            title="När på dygnet du är som mest aktiv"
+            archive={archive}
+            size={size}
+          />
+        </div>
+        <div>
+          <Emojis title="Dina favorit Emojis" archive={archive} />
+        </div>
+        <div>
+          <ShareData archive={archive} />
         </div>
       </Pages>
     </div>

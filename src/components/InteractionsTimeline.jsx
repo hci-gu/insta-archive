@@ -10,8 +10,9 @@ import { bisector, extent } from '@visx/vendor/d3-array'
 import { useMemo } from 'react'
 import styled from '@emotion/styled'
 
-const STORIES_COLOR = '#C03221'
-const POSTS_COLOR = '#545E75'
+const POSTS_LIKES_COLOR = '#545E75'
+const STORY_LIKES_COLOR = '#C03221'
+const COMMENTS_COLOR = '#7EA16B'
 
 const dataToBuckets = (data, type) => {
   const buckets = data.reduce((acc, curr) => {
@@ -68,10 +69,14 @@ const Legend = () => {
   return (
     <LegendWrapper>
       <span>
-        <div style={{ background: POSTS_COLOR }}></div> Inlägg
+        <div style={{ background: POSTS_LIKES_COLOR }}></div> Inlägg du gillat
       </span>
       <span>
-        <div style={{ background: STORIES_COLOR }}></div> Stories
+        <div style={{ background: STORY_LIKES_COLOR }}></div> Stories du gillat
+      </span>
+      <span>
+        <div style={{ background: COMMENTS_COLOR }}></div> Kommentarer du
+        skrivit
       </span>
     </LegendWrapper>
   )
@@ -83,9 +88,16 @@ const LikesTimeline = ({
   padding = 48,
   playerRef,
 }) => {
-  const likesBuckets = dataToBuckets(archive.interactions, 'Like')
-  //   const storiesBuckets = dataToBuckets(archive.activities, 'Story')
   const buckets = dataToBuckets(archive.interactions)
+  const postLikes = archive.interactions.filter(
+    (o) => o.type == 'Like' && o.onType == 'Post'
+  )
+  const storyLikes = archive.interactions.filter(
+    (o) => o.type == 'Like' && o.onType == 'Story'
+  )
+  const postLikesBuckets = dataToBuckets(postLikes)
+  const storyLikesBuckets = dataToBuckets(storyLikes)
+  const commentBuckets = dataToBuckets(archive.interactions, 'Comment')
 
   const { width, height } = size
 
@@ -93,9 +105,9 @@ const LikesTimeline = ({
     () =>
       scaleTime({
         range: [padding, width - padding],
-        domain: extent(archive.interactions, (d) => d.timestamp),
+        domain: extent(buckets, (d) => d.date),
       }),
-    [width, padding]
+    [width, padding, buckets]
   )
   const yScale = useMemo(
     () =>
@@ -108,21 +120,29 @@ const LikesTimeline = ({
 
   return (
     <div style={{ position: 'relative' }}>
-      {/* <Legend /> */}
+      <Legend />
       <svg width={width} height={height}>
-        {/* <LinePath
-          stroke="#C03221"
+        <LinePath
+          stroke={POSTS_LIKES_COLOR}
           strokeWidth={2}
-          data={storiesBuckets}
-          opacity={storyOpacity}
+          data={postLikesBuckets}
           x={(d) => dateScale(d.date)}
           y={(d) => yScale(d.value)}
           curve={curveBasis}
-        /> */}
+        />
         <LinePath
-          stroke="#545E75"
+          stroke={STORY_LIKES_COLOR}
           strokeWidth={2}
-          data={likesBuckets}
+          data={storyLikesBuckets}
+          x={(d) => dateScale(d.date)}
+          y={(d) => yScale(d.value)}
+          curve={curveBasis}
+        />
+
+        <LinePath
+          stroke={COMMENTS_COLOR}
+          strokeWidth={2}
+          data={commentBuckets}
           x={(d) => dateScale(d.date)}
           y={(d) => yScale(d.value)}
           curve={curveBasis}
