@@ -1,6 +1,8 @@
-import React from 'react'
+import React, { useState } from 'react'
 import styled from '@emotion/styled'
-import { Button, Space, Text } from '@mantine/core'
+import { Button, Checkbox, Flex, Loader, Space, Text } from '@mantine/core'
+import { stripArchive } from 'insta-archive-hook'
+import pako from 'pako'
 
 const Root = styled.div`
   width: 100%;
@@ -25,12 +27,38 @@ const DescriptionContainer = styled.div`
 `
 
 const ShareData = ({ archive }) => {
+  const [loading, setLoading] = useState(false)
+  const [accepted, setAccepted] = useState(false)
+
+  const onClick = async () => {
+    setLoading(true)
+    const dataToUpload = stripArchive(archive)
+    const compressedData = pako.gzip(JSON.stringify(dataToUpload))
+
+    // upload to localhost:3000/upload
+    await fetch('http://localhost:8090/upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/gzip',
+        'Content-Encoding': 'gzip',
+      },
+      body: compressedData,
+    })
+    setLoading(false)
+  }
+
   return (
     <>
       <Root>
-        <Text fz={36} fw={800}>
-          Dela med dig av din data
-        </Text>
+        <Flex direction="column" w="50%" align="center">
+          <Text fz={36} fw={800}>
+            Dela med dig av din data
+          </Text>
+          <Text fz={24} fw={300}>
+            Hittills har du bara sett din data, men du kan även välja att dela
+            med dig av delar för att vara med i en studie. Inge
+          </Text>
+        </Flex>
         <Space h={48} />
         <DescriptionContainer>
           <div>
@@ -58,7 +86,22 @@ const ShareData = ({ archive }) => {
           </div>
         </DescriptionContainer>
         <Space h={48} />
-        <Button>Dela din data</Button>
+        <Flex align="center">
+          <Checkbox
+            checked={accepted}
+            onChange={(e) => setAccepted(e.currentTarget.checked)}
+          />
+          <Space w={8} />
+          <Text fz={16} fw={300}>
+            Jag godkänner att min data används i en studie
+          </Text>
+        </Flex>
+        <Space h={16} />
+        <Button onClick={onClick} disabled={loading || !accepted}>
+          {loading && <Loader size={16} />}
+          {loading && <Space w={8} />}
+          Dela din data
+        </Button>
       </Root>
     </>
   )

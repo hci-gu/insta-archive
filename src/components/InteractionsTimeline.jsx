@@ -1,47 +1,16 @@
 import moment from 'moment'
-import { arc, curveBasis } from 'd3-shape'
+import { curveBasis } from 'd3-shape'
 import { scaleLinear, scaleTime } from '@visx/scale'
-import { Bar, Line, LinePath } from '@visx/shape'
+import { LinePath } from '@visx/shape'
 import { AxisBottom, AxisLeft } from '@visx/axis'
-import { useCurrentFrame } from 'remotion'
-import { useTooltip } from '@visx/tooltip'
-import { localPoint } from '@visx/event'
-import { bisector, extent } from '@visx/vendor/d3-array'
+import { extent } from '@visx/vendor/d3-array'
 import { useMemo } from 'react'
 import styled from '@emotion/styled'
+import { dataToBuckets } from '../utils'
 
 const POSTS_LIKES_COLOR = '#545E75'
 const STORY_LIKES_COLOR = '#C03221'
 const COMMENTS_COLOR = '#7EA16B'
-
-const dataToBuckets = (data, type) => {
-  const buckets = data.reduce((acc, curr) => {
-    const time = curr.timestamp
-    // round to week
-    const key = moment(time).startOf('month').valueOf()
-    if (!acc[key]) {
-      acc[key] = {
-        value: 0,
-        date: time,
-      }
-    }
-    if (type && curr.type == type) {
-      acc[key].value++
-    }
-    if (!type) {
-      acc[key].value++
-    }
-    return acc
-  }, {})
-
-  return Object.keys(buckets)
-    .map((time) => ({
-      time,
-      date: buckets[time].date,
-      value: buckets[time].value,
-    }))
-    .sort((a, b) => a.date - b.date)
-}
 
 const LegendWrapper = styled.div`
   position: absolute;

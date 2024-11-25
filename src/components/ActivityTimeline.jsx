@@ -1,5 +1,5 @@
 import moment from 'moment'
-import { arc, curveBasis } from 'd3-shape'
+import { arc, curveBasis, curveBumpX, curveBundle } from 'd3-shape'
 import { scaleLinear, scaleTime } from '@visx/scale'
 import { Bar, Line, LinePath } from '@visx/shape'
 import { AxisBottom, AxisLeft } from '@visx/axis'
@@ -9,38 +9,10 @@ import { localPoint } from '@visx/event'
 import { bisector, extent } from '@visx/vendor/d3-array'
 import React, { useMemo } from 'react'
 import styled from '@emotion/styled'
+import { dataToBuckets } from '../utils'
 
 const STORIES_COLOR = '#C03221'
 const POSTS_COLOR = '#545E75'
-
-const dataToBuckets = (data, type) => {
-  const buckets = data.reduce((acc, curr) => {
-    const time = curr.timestamp
-    // round to week
-    const key = moment(time).startOf('month').valueOf()
-    if (!acc[key]) {
-      acc[key] = {
-        value: 0,
-        date: time,
-      }
-    }
-    if (type && curr.type == type) {
-      acc[key].value++
-    }
-    if (!type) {
-      acc[key].value++
-    }
-    return acc
-  }, {})
-
-  return Object.keys(buckets)
-    .map((time) => ({
-      time,
-      date: buckets[time].date,
-      value: buckets[time].value,
-    }))
-    .sort((a, b) => a.date - b.date)
-}
 
 const LegendWrapper = styled.div`
   position: absolute;
@@ -97,9 +69,6 @@ const LineChart = ({
     showTooltip && tooltipLeft > 0 ? archive.activities[frame] : null
   const postsBuckets = dataToBuckets(archive.activities, 'Post')
   const storiesBuckets = dataToBuckets(archive.activities, 'Story')
-  const username = archive.profile.name
-  const myDms = archive.directMessages.filter((o) => o.sender === username)
-  // const directMessages = dataToBuckets(myDms)
   const buckets = dataToBuckets(archive.activities)
   const bisectDate = bisector((d) => new Date(d.timestamp)).left
 
@@ -161,7 +130,7 @@ const LineChart = ({
           opacity={storyOpacity}
           x={(d) => dateScale(d.date)}
           y={(d) => yScale(d.value)}
-          curve={curveBasis}
+          curve={curveBundle}
         />
         {/* <LinePath
           stroke="#E45E75"
@@ -179,7 +148,7 @@ const LineChart = ({
           data={postsBuckets}
           x={(d) => dateScale(d.date)}
           y={(d) => yScale(d.value)}
-          curve={curveBasis}
+          curve={curveBundle}
         />
         <Bar
           x={padding}

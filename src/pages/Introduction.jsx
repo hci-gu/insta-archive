@@ -89,20 +89,7 @@ const Introduction = ({ archive }) => {
   const comments = archive.interactions.filter(
     (o) => o.type == 'Comment'
   ).length
-  const username = archive.profile.name
-  const dms = archive.directMessages.filter((o) => o.sender == username).length
-
-  const commentTexts = archive.interactions
-    .filter((o) => o.type === 'Comment')
-    .map((o) => o.content)
-    .flatMap(extractEmojis)
-    .join(' ')
-  const captions = archive.activities
-    .map((o) => o.caption)
-    .flatMap(extractEmojis)
-    .join(' ')
-
-  const emoji = mostCommonEmoji(commentTexts + ' ' + captions)
+  const dms = archive.directMessages.filter((o) => o.sentByMe).length
 
   return (
     <Root>
@@ -113,6 +100,9 @@ const Introduction = ({ archive }) => {
         </strong>
         .
       </Text>
+      <Text fz={16} fw={200}>
+        Sedan dess har du gjort följande:
+      </Text>
       <SimpleGrid cols={3} w={'50%'} m={'32px auto'} spacing="md">
         <Stat value={postCount} text="Inlägg" />
         <Stat value={storiesCount} text="Stories" />
@@ -120,13 +110,6 @@ const Introduction = ({ archive }) => {
         <Stat value={commentLikeCount} text="Kommentarer du gillat" />
         <Stat value={comments} text="Kommentarer du skrivit" />
         <Stat value={dms} text="Skickade DMs" />
-
-        {/* {Array.from({ length: 1 }).map((_, i) => (
-          <StatCard shadow="sm" withBorder key={`Griditem_${i}`}>
-            <strong>{emoji}</strong>
-            <span>Mest använda emoji</span>
-          </StatCard>
-        ))} */}
       </SimpleGrid>
     </Root>
   )

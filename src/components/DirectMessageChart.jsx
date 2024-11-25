@@ -1,46 +1,15 @@
 import moment from 'moment'
-import { arc, curveBasis } from 'd3-shape'
+import { curveBasis } from 'd3-shape'
 import { scaleLinear, scaleTime } from '@visx/scale'
-import { Bar, Line, LinePath } from '@visx/shape'
+import { LinePath } from '@visx/shape'
 import { AxisBottom, AxisLeft } from '@visx/axis'
-import { useCurrentFrame } from 'remotion'
-import { useTooltip } from '@visx/tooltip'
-import { localPoint } from '@visx/event'
-import { bisector, extent } from '@visx/vendor/d3-array'
-import React, { act, useMemo } from 'react'
+import { extent } from '@visx/vendor/d3-array'
+import React, { useMemo } from 'react'
 import styled from '@emotion/styled'
+import { dataToBuckets } from '../utils'
 
 const SENT_COLOR = '#C03221'
 const RECEIVED_COLOR = '#545E75'
-
-const dataToBuckets = (data, type) => {
-  const buckets = data.reduce((acc, curr) => {
-    const time = curr.timestamp
-    // round to week
-    const key = moment(time).startOf('month').valueOf()
-    if (!acc[key]) {
-      acc[key] = {
-        value: 0,
-        date: time,
-      }
-    }
-    if (type && curr.type == type) {
-      acc[key].value++
-    }
-    if (!type) {
-      acc[key].value++
-    }
-    return acc
-  }, {})
-
-  return Object.keys(buckets)
-    .map((time) => ({
-      time,
-      date: buckets[time].date,
-      value: buckets[time].value,
-    }))
-    .sort((a, b) => a.date - b.date)
-}
 
 const LegendWrapper = styled.div`
   position: absolute;
@@ -84,10 +53,8 @@ const LineChart = ({
   playerRef,
 }) => {
   const username = archive.profile.name
-  const sentDms = archive.directMessages.filter((o) => o.sender === username)
-  const receivedDms = archive.directMessages.filter(
-    (o) => o.sender !== username
-  )
+  const sentDms = archive.directMessages.filter((o) => o.sentByMe)
+  const receivedDms = archive.directMessages.filter((o) => !o.sentByMe)
   const sentDMBuckets = dataToBuckets(sentDms)
   const receivedDMBuckets = dataToBuckets(receivedDms)
   const buckets = dataToBuckets([...sentDms, ...receivedDms])
